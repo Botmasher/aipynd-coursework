@@ -6,3 +6,4 @@ My cohort starts 5 February 2019.
 
 Links:
 - I expect we'll be following the [Udacity styleguides](https://udacity.github.io/frontend-nanodegree-styleguide/) again
+- PEP8: https://www.python.org/dev/peps/pep-0008/

@@ -67,4 +67,31 @@
 - playground test out methods
 
 ## 13. Dicts?
-- 
+- storing kv pairs
+- assigning to keys and checking key with `is` and `is not`
+- `.get` for lookups that may fail since it returns None (or passed-in default)
+
+# 14-16 Quiz & Solution & Another Quiz
+- dict keys must be immutable, like string, int or tuple
+- `KeyError` on bracket lookup with non-existent keys
+- `.get` with default value
+- `is` vs `==` for equivalence and identity checks
+- understanding types of values and keys in dictionary
+
+# 17. When to Use Dictionaries
+- imagine the financial example earlier but you want to hold information about each string
+
+# 18. Check for Understanding
+- know the properties of a list vs tuple vs dict vs set
+
+# 19. Compound Data Structures
+- nested dicts
+
+# 20-21 Quiz & Solution
+- dict nested keys access and storing and adding vs set, list
+
+# 22-23 Practice Questions & Solution
+- make sure you understand how to insert, access and manipulate dictionaries
+
+# 24. Conclusion
+- review of the data structures: ordered and mutable and constructor and example of each

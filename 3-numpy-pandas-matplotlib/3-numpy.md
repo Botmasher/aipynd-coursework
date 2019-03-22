@@ -102,16 +102,51 @@
     - use keyword `axis` to sort by rows or cols: `np.sort(x, axis=0)`
 
 ## 10. Quiz
-- 
+- slice an ndarray looking for odds-only using boolean indexing
 
 ## 11. Arithmetic Operations and Broadcasting
-- 
+- use symbols or functions to get the same output: `+` or `np.add`
+- same goes for `divide`, `multiply`, `subtract`
+- _broadcasting_ involves arrays of different shapes
+    - operators operate on same-shape or broadcastable arrays
+- calculate `np.exp` and `np.sqrt` of each element
+- raise members to a `pwr`
+- all the statistical methods like `min`, `.mean` and `.sd`
+- modify each number without complicated loops
+    - add a number to each member: `n + ndarray_name`
+    - behind the scenes NumPy is broadcasting an array for `n` to make the shape
+- add a different number to each col: `rank_1_name + rank_2_ndarray_name`
+    - simplest case has as many members in rank 1 array as there are cols in the other
+- add a different number to each row: `rank_2_name + rank_2_ndarray_name`
+    - simplest case has single-number subarray rows added to each row in the other
+- see the documentation for broadcasting workings and rules
 
 ## 12. Quiz
-- 
+- practice creating a rank-2 array and adding different numbers to each column
 
 ## 13. Mini-Project Setup
-- 
+- project requires Anaconda and can be completed in workspace or notebooks locally
 
 ## 14. Mini-Project
-- 
+- data normalization also known as _feature scaling_ for similar range of values
+    - normalize data to fall between 0 and 1
+- _mean normalization_ distributes values in interval around zero
+    - values evenly distributed around `0`
+    - guarantees the average is `0`
+- import NumPy and create a rank 2 array of random integers between 0 and 5,000
+    - array will have 1000 rows and 20 columns
+- normalize the data using the mean normalization equation
+    - for each column subtract col mean and divide the result by col std
+- check that the mean is roughly zero and the avg min and max fall on either side
+- now split the dataset for ML into:
+    - a _training set_ (60%)
+    - a _cross validation set_ (20%)
+    - a _test set_ (20%)
+    - these should be picked at random
+- create rank 1 array with random permutation of row indices from normalized matrix
+    - `np.random.permutation(n)` creates random permutation of ints from `0` to `n-1`
+    - note you're making random _indexes_ here not yet grabbing values
+    - pass normalized array shape's row count to permutation function
+- now use those random row indexes to create the datasets
+    - you can just use fancy indexing here: `array_name[random_indexes]`
+    - that worked even with a rank 2 array when permutations was a rank 1!

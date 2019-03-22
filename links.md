@@ -15,4 +15,5 @@
 - [Cheat sheet](https://docs.conda.io/projects/conda/en/latest/user-guide/cheatsheet.html)
 - [Magic commands in Jupityr](https://ipython.readthedocs.io/en/stable/interactive/magics.html)
 - [NumPy and SciPy](https://docs.scipy.org/)
+- [broadcasting](https://docs.scipy.org/doc/numpy-1.13.0/user/basics.broadcasting.html)
 - 

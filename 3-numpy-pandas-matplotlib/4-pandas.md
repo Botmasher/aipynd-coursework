@@ -123,7 +123,17 @@
     - group year, then department, then sum salaries: `...(['Year', 'Department'])...`
 
 ## 13. Getting Set Up for the Mini-Project
-- 
+- this is for doing it locally instead of the project workspace
 
 ## 14. Mini-Project
-- 
+- read CSVs of prices for three tech stocks with `pd.read_csv`
+    - use `Date` as the index column
+    - set `parse_dates=True`
+    - choose columns to use
+- create date range for comparing stocks with `pd.date_range`
+- use date range as index for new DataFrame comparing stocks
+- rename join columns of individual stocks so they have different names
+- use `.join` to them to the new DataFrame
+- find and remove any NaN rows
+- calculate the mean, median, standard deviation, correlation
+- plot the data

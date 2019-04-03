@@ -70,16 +70,58 @@ plt.xlabel("proportion")
 - use `plt.pie`, passing in `wedgeprops` for donut
 
 ## 9. Histograms
-- 
+- quantitative variable, value ranges
+- bars include values on the left end up to those on the right end
+- `plt.hist` much like bar chart
+- set the `bin` value
+- consider that `arange` does not include the max value
+- pass `sb.distplot` panda series with all data
+    - default `bins` count larger than matplotlib
+    - defaults to include density curve
+    - if turning the curve off, why aren't you just using matplotlib?
 
 ## 10. Histogram Practice
-- 
+- create a simple histogram
 
 ## 11. Figures, Axes, and Subplots
-- 
+- instead of `hist` could've also set up a `plt.figure()`
+    - add axes to it: `.add_axes`
+    - run the histogram on the axes: `.hist()`
+- could also do this with `countplot` to get bar chart
+- `subplot` to split visuals of plots into rows and columns
+    - you can, say, have multiple separate plots side by side
+    - not doing this might overlay plots
 
 ## 12. Choosing a Plot for Discrete Data
-- 
+- plot discrete data as a bar chart
+- plot discrete data as a histogram but taking less `rwidth` to separate bars
+- do not plot ordinal data as a histogram 
 
-## 13. Descriptive Statistics, Outliers and Axis Limits
-- 
+## 13. Descriptive Statistics, Outliers, and Anomalies
+- these plots go beyond descriptive statistics
+- plots tell skewednesss, unimodal, multimodal
+- see errors in data
+- pay attention to unusual values
+- histogram: are there outliers?
+- use `plt.xlim` for skewed data to chop of edges (give upper and lower bounds)
+
+## 15. Scales and Transformations
+- also change scaling from linear
+- finance often deals in different scales
+    - capture small diffs on low end, large at high end
+    - multiplicative rather than arithmetic diffs
+    - make tickmarks *2 of previous rather than +2
+- skewedness again, but with an axis transform
+- use `plt.xscale('log')`
+    - modify the bin boundaries using some logarithmicky math
+
+## 16. Practice
+- make histograms both cutting and scaling the axis
+
+## 17. Lesson Summary
+- learned about plot types
+- learned techniques for dealing with data
+
+## 18. Extra: Kernel Density Estimation
+- plot a KDE using `sb.distplot`
+- notes about how this works and how to interpret

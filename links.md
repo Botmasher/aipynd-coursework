@@ -17,3 +17,6 @@
 - [NumPy and SciPy](https://docs.scipy.org/)
 - [broadcasting](https://docs.scipy.org/doc/numpy-1.13.0/user/basics.broadcasting.html)
 - [documentation](https://pandas.pydata.org/pandas-docs/stable/)
+
+4. Linear Algebra
+- [LaTeX cheatsheet](https://www.authorea.com/users/77723/articles/110898-how-to-write-mathematical-equations-expressions-and-symbols-with-latex-a-cheatsheet)

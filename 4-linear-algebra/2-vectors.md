@@ -39,19 +39,21 @@
 - magnitude `∥x∥` of a 3D vector `x⃗` getting square root of all three squared
 
 ## 8. Operations in the Field
-- 
+- define operations in field
+	- first zero and one element: `[0 0 ... 0 ]` and `[1 1 ... 1]`
+- from there addition, multiplication
 
 ## 9. Vector Addition
-- 
+- to add two vectors, add each entry of one to each of other
 
 ## 10. Quiz
-- 
+- practice adding vectors and writing solutions in LaTeX
 
 ## 11. Scalar by Vector Multiplication
-- 
+- multiply every entry in the vector by the scalar
 
 ## 12. Quiz
-- 
+- practice multiplying a vector and writing solution in LaTeX
 
 ## 13. Answers
-- 
+- some logical checks on what scalar variables do to a vector

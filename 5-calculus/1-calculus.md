@@ -1,0 +1,54 @@
+# Lesson 1: Calculus
+
+(section references in parens)
+- think about rate of change and grasp intuitively
+- derivatives as "tiny changes to some quantity" (5)
+    - how changes relate to tiny nudge in another
+    - how does the function change looking at that tiny nudge?
+    - `df/dx` as rate of change in function per unit change x
+    - it's like a slope at that tangent line
+- sum rule, product rule, chain rule
+- `df` as multiple of `dx` (5)
+    - same as the derivative of x raised to power
+    - so `df/dx = 2x` is the derivative of `f(x) = x**2`
+    - safe to ignore the added `+ dx**2` because it's so tiny
+    - (for square, it means safe to calc only sides growth not tiny extra square)
+    - now you can plug in numbers to x for rate of change!
+    - for x-cubed, can safely ignore all but growth on cube faces
+    - each new cube square has volume `3 * x**2 * dx`
+    - "Power Rule" (5)
+        - `dx**n / dx = nx ** (n-1)`, like `2x ** 1` for `x ** 2`
+    - taking derivative for angles theta
+- the "Chain Rule" (6)
+    - sum derivative of two functions as sum of their derivatives
+    - using chain rule to get derivative of `d/dx (g(h(x)))`
+    - cancel out `dh` and arrive at `dg/dx`
+- taking derivatives of exponentials (7)
+- `y = ln(x)`, `e**y = x` then `e**y dy = dx` (8)
+    - again, what tiny nudges are happening at tangent slopes?
+- limit as "approach" (9)
+    - a few ways to think about them
+    - very small changes but not zero
+    - narrowing in on specific values, so like a break or jump wouldn't narrow in
+    - l'Hôpital's rule
+- integrals (10-11)
+    - taking "antiderivative" like back from `2t` to `t ** 2`
+    - imagine step intervals as velocity increases
+    - but actually it's infinitely many small steps
+    - approximate velocity if it were constant at an interval
+        - as you take more steps the approximation gets better
+        - (really decrease step length)
+    - area under velocity curve as distance traveled
+        - seems like complex adding of infinitely many tiny slices
+        - actually just area under a curve
+        - that's the integral of v and t!
+    - first find antiderivative function
+    - then subtract `F(b)` top bound minus `F(a)` bottom bound
+    - find average of continuous wave like sine wave (11)
+        - integral a-to-b of `f(x)dx` all over `(b - a)`
+        - the numerator is just adding up `f(x)dx`
+- Taylor Series (12)
+    - "main building block of approximating functions"
+    - not needed for building own neural net
+- chain rule but for more than one dependent variable (13)
+    - often true of neural nets

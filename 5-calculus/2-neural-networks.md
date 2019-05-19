@@ -1,5 +1,54 @@
 # Lesson 2: Calculus in Neural Networks
 
 (sections in parens)
-- 
-- 
+- imagine how neural nets tell that pixels of numbers are the same (2)
+    - first layer cutting up to look for small edges
+    - next layer piecing together loops and long lines
+    - finally output recognizes digits
+    - brightest neuron in output as network's choice
+    - activations in one layer determine next
+    - a bunch of weighted sums
+    - "loosely analogous" to neurons firing making others fire
+    - Sigmoid function - squish weighted sums to between 0 and 1
+    - add bias to make sure only activates at certain value
+    - whole network as function taking in layer and spit out numbers as output
+- define cost function telling it what's useless (3)
+    - square difference between output and ideal
+    - use the training data
+    - find out what measure of weights and biases change cost function fastes
+    - "which changes to which weights matter the most?"
+- did the digit-recognizing network live up? (3)
+    - compared to goal of seeing edges and loops/lines...
+    - ...this network is actually looking for random patterns
+    - seemingly random, meaning it still guesses at noise
+    - so it doesn't know how to draw digits
+    - cost function never gave it reason to live in another universe
+- backpropagation (4)
+    - calculate nudges up/down you want to happen to second to last layer
+    - from there recursively apply backwards through network
+    - do this for each training example, then average desired changes
+- magnitude tells how sensitive cost function is to weight and bias (4)
+    - (above is from computing weights on edges)
+    - (cost of function is more sensitive to changes in one edge)
+    - (edge with 3.20 is 32 times more sensitive than 0.10)
+    - (this means wiggling values will change the first more)
+    - individual effects as intuitive, but so many of them
+    - care about "bang for your buck"
+- above steps of calc backpropagations and avgs is slow (4)
+    - instead divide into "minibatches"
+    - "converge towards a local minimum of the cost function"
+    - this means the net is doing well with training data
+- calculus of backpropagation (5)
+    - "workhorse behind how neural networks learn"
+    - chain rules as derivatives determining gradient components
+    - gradient minimizes cost of net "by repeatedly stepping downhill"
+    - https://www.youtube.com/watch?v=_d52fwoXXd4&t=09m24s
+- compute a gradient (6)
+    - multiple inputs to single output of "how bad" performed on training examples
+    - for `f(x,y)` you'll get a matrix
+        - first row is how sensitive to changes in `x`
+        - second is how sensitive function is to change in `y`
+    - which direction gets you uphill fastest (cost)?
+    - take partial derivatives (`∂f/∂x`)
+        - treat other variable as constant
+        - https://www.youtube.com/watch?v=_K7lzXqyj8I&t=03m23s

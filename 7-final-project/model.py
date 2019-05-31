@@ -63,14 +63,21 @@ with open('cat_to_name.json', 'r') as f:
 
 ## Training ##
 
+def get_device():
+    """Return the GPU device if available otherwise CPU"""
+    torch_device = torch.device(["cpu", "cuda"][torch.cuda.is_available()])
+    return torch_device
+
 ## Set up the classifier and model
 
 # Instantiate and configure pytorch classifier
+# using VGG classifier feature settings
 classifier = nn.Sequential(OrderedDict([
-  ('fc1', nn.Linear(1024, 500)),
-  ('relu', nn.ReLU()),
-  ('fc2', nn.Linear(500, 2)),
-  ('output', nn.LogSoftmax(dim = 1))
+    ('fc1', nn.Linear(25088, 500)),
+    ('relu', nn.ReLU()),
+    ('fc2', nn.Linear(500, 102)),
+    ('dropout', nn.Dropout(0.2)),
+    ('output', nn.LogSoftmax(dim = 1))
 ]))
 
 # Select torchvision model
@@ -83,19 +90,10 @@ for param in model.parameters():
 # Attach classifier to pretrained model
 model.classifier = classifier
 
-# VGG classifier feature settings
-# Sequential(
-#    (fc1): Linear(in_features=1024, out_features=500, bias=True)
-#    (relu): ReLU()
-#    (fc2): Linear(in_features=500, out_features=2, bias=True)
-#    (output): LogSoftmax()
-# )
-## print(model)
 
 ## Train and validate the model
 
-# Default to GPU when available
-device = torch.device(("cpu", "cuda:0")[torch.cuda.is_available()])
+device = get_device()
 
 # Setup negative log probability for log softmax
 criterion = nn.NLLLoss()
@@ -142,13 +140,13 @@ for epoch in range(epochs):
                     top_p, top_class = ps.topk(1, dim = 1)
                     equals = top_class == labels.view(*top_class.shape)
                     accuracy += torch.mean(equals.type(torch.FloatTensor)).item()
-            # output loss     
-            print(
-                f"Epoch {epoch + 1}/{epochs}"
-                f"Training loss: {running_loss / print_every:.3f}"
-                f"Validation loss: {valid_loss / len(valid_loader):.3f}"
-                f"Validation accuracy: {accuracy / len(valid_loader):.3f}"
-            )
+            # output the loss     
+            print(f"""
+                Epoch {epoch + 1}/{epochs} -- 
+                Training loss: {running_loss / print_every:.3f} -- 
+                Validation loss: {valid_loss / len(valid_loader):.3f} -- 
+                Validation accuracy: {accuracy / len(valid_loader):.3f}
+            """)
             running_loss = 0
             model.train()
 
@@ -167,48 +165,46 @@ with torch.no_grad():
         correct += (predicted == labels).sum().item()
     print(f"Test accuracy: {100 * correct / total}%")
 
-
 ## Save and rebuild the model
 
+# Save a model checkpoint
 def save_model(model, optimizer):
     """Save a checkpoint for the model."""
-    model.class_to_idx = train_data.class_to_idx
-    model.cpu
+    model.class_to_idx = train_dataset.class_to_idx
+    device = get_device()
+    model.to(device)
     checkpoint = {
-        'architecture': 'densenet',
+        'classifier': model.classifier,
+        'features': model.features,
+        'optimizer': optimizer.state_dict(),
         'input_size': 25088,
         'output_size': 102,
-        'features': model.features,
-        'classifier': model.classifier,
-        'optimizer': optimizer.state_dict(),
         'state_dict': model.state_dict(),
         'idx_to_class': model.class_to_idx
     }
    torch.save(checkpoint, 'checkpoint.pth')
-   print("Model saved")
+   print("Model saved.")
+   return checkpoint
 
 save_model(model, optimizer)
 
 # Load a saved checkpoint
-def load_checkpoint(filepath):
+def load_checkpoint(file_path):
     """Rebuild the model from a saved checkpoint."""
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model_data = torch.load(filepath)
-    model = models.vgg16(pretrained=True)
-    default_classifier = nn.Sequential(
-       nn.Linear(1024, 512),
-       nn.ReLU(),
-       nn.Linear(512, 256),
-       nn.ReLU(),
-       nn.Dropout(0.2),
-       nn.Linear(256, 102),
-       nn.LogSoftmax(dim = 1)
-    )
-    classifier = model_data.get('classifier', default_classifier)
-    model.classifier = classifier
+    device = get_device()
+    model_data = torch.load(file_path)
+    model = models.vgg16(pretrained = True)
+    model.classifier = model_data.get('classifier', {
+        ('fc1', nn.Linear(25088, 500)),
+        ('relu', nn.ReLU()),
+        ('fc2', nn.Linear(500, 102)),
+        ('dropout', nn.Dropout(0.2)),
+        ('output', nn.LogSoftmax(dim = 1))
+    })
     model.class_to_idx = model_data.get('idx_to_class')
     model.load_state_dict(model_data['state_dict'])
     model.to(device)
+    print("Model loaded.")
     return (model, model_data)
 
 model, model_data = load_checkpoint('checkpoint.pth')
@@ -217,22 +213,32 @@ model, model_data = load_checkpoint('checkpoint.pth')
 ## Preprocess image to use as model input
 
 # preprocessor function
-def process_image(image):
+def process_image(image, size=255):
     """Scales, crops, and normalizes a PIL image for a PyTorch model.
     Returns a Numpy array.
     """
-    open_image = Image.open(image)
-    preprocess_transforms = transforms.Compose([
-        transforms.RandomResizedCrop(224),
-        transforms.RandomRotation(40),
-        transforms.RandomHorizontalFlip(),
+    pil_image = Image.open(image)
+    pil_image.thumbnail(size)
+    np_image = np.array(pil_image)
+
+    transformed_image = transforms.Compose([
+        transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize(
             [0.485, 0.456, 0.406],
             [0.229, 0.224, 0.225]
         )
-    ])
-    return preprocess_transforms(open_image)
+    ])(np_image)
+
+    # TODO: PyTorch expects the color channel to be the first dimension.
+    # It's the third dimension in the PIL image and Numpy array.
+    # Reorder dimensions using ndarray.transpose. The color channel needs
+    # to be first; retain the order of the other two dimensions.
+    #
+    # NOTE: check out torch.unsqueeze instead?
+    transformed_image.transpose()
+
+    return transformed_image
 
 # check the preprocessor function
 def imshow(image, ax=None, title=None):
@@ -276,7 +282,25 @@ def predict_top_k(image_path, model, k=5):
     # NOTE:
     # Convert indices to class labels using model.class_to_idx (added earlier)
     # Invert the dict to get a mapping from index to class.
-probabilities, classes = predict_top_k(image_path, model)
+    
+    # images, labels = next(iter(train_loader))
+    # image = images[0].view(1, 784)
+    # # Turn off gradients to speed up this part
+    # with torch.no_grad():
+    #     logps = model.forward(img)
+
+    # TODO: get an image tensor and calculate top k predictions
+    #img_a = "" 
+    top_k = img_a.topk(k)
+    predictions = []
+    idx_to_label = [v:k for k, v in model.class_to_idx().items()]
+    for img in top_k:
+        # TODO: get index and convert index to class label
+        label = idx_to_label[idx]
+        # TODO: get the probability
+        probability = 0.0
+        predictions.append((label, probability))
+    return predictions
 
 
 ## Display results and check visually
@@ -293,3 +317,18 @@ probabilities, classes = predict_top_k(image_path, model)
 # TODO:
 # Use previously defined `imshow` to display a tensor
 # as an image.
+
+image_path = ""     # TODO: image from tensor
+image_label = ""    # TODO: convert integer to flower name with cat_to_name.json
+image = process_image(image_path)
+imshow(image)
+probabilities, classes = predict_top_k(image_path, model)
+
+
+# TODO: afterwards use argparse to create CLI 
+# - run training py passing in data dir (required) and optional args:
+#   - save dir, architecture, learning rate, hidden units, epochs, gpu
+#   - action 'store' versus 'store_true' (for gpu) if gpu came in at all
+# - run predicting py passing in img path, checkpoint path
+#   - specify specific architecture
+#   - hidden units, top k, category names (path to cat_to_names json)

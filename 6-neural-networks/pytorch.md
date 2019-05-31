@@ -1,6 +1,8 @@
 # Deep Learning with PyTorch
 
 (Lesson 4 in neural networks)
+
+## Intro and first problem
 - tensors, autograd, validation, transfer learning
 - calculate the output of a network 
 ```Python
@@ -51,6 +53,7 @@ B2 = torch.randn((1, n_output))
     - you can still read its `.numpy()`!
     - changing in one will change values in other
 
+## Overview of the code
 - I'll comment on problems solved here and see if they come in handy in my project
 - solutions in class notebooks `.../notebooks/deep-learning-v2-pytorch/intro-to-pytorch/`
 1. just generate some data and calculate the output (above) 
@@ -79,3 +82,32 @@ B2 = torch.randn((1, n_output))
     - use CUDA and finish training the model
     - train pretrained models to work on cat and dog images (DenseNet or ResNet)
     - `Part 8 - Transfer Learning (Solution).ipynb`
+
+## Notes on working through the code
+- set up / load testing and training data
+    - training, do things like rotation and crop
+    - both must `ToTensor` and `Normalize` (rgb normalization)
+    - for test usually resize to 255 and center crop to 224
+    - use this later
+- standard imports: pyplot, torch, torchvision (for photos)
+    - torch's `nn`, `optim` and then `nn.functional as F`
+    - torchvision's `datasets, transforms, models`
+- CUDA is for running on GPU; this for `model.to(device)`
+- pretrained classifier: `models.densenet121(pretrained=True)`
+    - freeze params while working on that model though
+    - this way you're not changing the pretrained model
+- define the model
+    - check that input matches pretrained output
+    - add layers (you're adding hidden layer to trained)
+    - choose activation function
+    - dropout chance, then linear, then logsoftmax
+- calculate your loss (`nn.NLLLoss`)
+- now send to device so it's using GPU (about to train!)
+- then train and test the model
+    - earlier you loaded training data
+    - loop through epochs, sending inputs and labels to device
+    - first training step run forward and backward
+    - then testing step to check how training has gone 
+        - only run forward
+        - do not train on testing data so no backpropagation
+        - calculate the test accuracy, loss

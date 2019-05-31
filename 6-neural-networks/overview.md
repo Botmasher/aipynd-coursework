@@ -1,5 +1,7 @@
 # Quick Overview
 
+NOTE: follow along in `example.py` code from Transfer Learning solution
+
 - the math you need:
     - matrix for moving from one layer of perceptron to next
     - activation function is how to calculate final value of node

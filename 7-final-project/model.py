@@ -160,10 +160,11 @@ with torch.no_grad():
     for inputs, labels in test_loader:
         inputs, labels = inputs.to(device), labels.to(device)
         forward_results = model.forward(inputs)
-        predicted = torch.max(forward_results.data, 1)[0]
+        predicted = torch.max(forward_results.data, 1)[1]
         total += labels.size(0)
-        correct += (predicted == labels).sum().item()
-    print(f"Test accuracy: {100 * correct / total}%")
+        correct += (predicted == labels).sum().float().item()
+    print(f"Test accuracy: {correct / total}")
+
 
 ## Save and rebuild the model
 
@@ -182,7 +183,7 @@ def save_model(model, optimizer):
         'state_dict': model.state_dict(),
         'idx_to_class': model.class_to_idx
     }
-   torch.save(checkpoint, 'checkpoint.pth')
+   torch.save(checkpoint, 'checkpoint.pt')
    print("Model saved.")
    return checkpoint
 
@@ -207,36 +208,73 @@ def load_checkpoint(file_path):
     print("Model loaded.")
     return (model, model_data)
 
-model, model_data = load_checkpoint('checkpoint.pth')
+model, model_data = load_checkpoint('checkpoint.pt')
 
 
 ## Preprocess image to use as model input
+## This is used when making predictions below.
 
 # preprocessor function
-def process_image(image, size=255):
+def process_image(image, size=256):
     """Scales, crops, and normalizes a PIL image for a PyTorch model.
     Returns a Numpy array.
     """
+    # Load and set up image
     pil_image = Image.open(image)
-    pil_image.thumbnail(size)
-    np_image = np.array(pil_image)
 
+    # # NOTE: below attempted to follow instructions on using and adjusting PIL image.
+    # # These attempts were all unsuccessful. Just using transforms.Compose
+    # # seemed to work fine, but does not avoid the issues raised in the instructions!
+    #
+    # "You'll want to use PIL to load the image (documentation). It's best to write a
+    # function that preprocesses the image so it can be used as input for the model.
+    # This function should process the images in the same manner used for training.
+    # "First, resize the images where the shortest side is 256 pixels, keeping the
+    # aspect ratio. This can be done with the thumbnail or resize methods. Then you'll
+    # need to crop out the center 224x224 portion of the image.
+    # Color channels of images are typically encoded as integers 0-255, but the model
+    # expected floats 0-1. You'll need to convert the values. It's easiest with a Numpy
+    # array, which you can get from a PIL image like so np_image = np.array(pil_image).
+    # As before, the network expects the images to be normalized in a specific way.
+    # For the means, it's [0.485, 0.456, 0.406] and for the standard deviations
+    # [0.229, 0.224, 0.225]. You'll want to subtract the means from each color channel,
+    # then divide by the standard deviation.
+    # And finally, PyTorch expects the color channel to be the first dimension but
+    # it's the third dimension in the PIL image and Numpy array. You can reorder
+    # dimensions using ndarray.transpose. The color channel needs to be first and retain
+    # the order of the other two dimensions."
+    #
+    # # resize image
+    # width, height = pil_image.size
+    # if width > height:
+    #     height = size
+    #     width *= (size / height)
+    # else:
+    #     width = size
+    #     height *= (size / height)
+    # pil_image.thumbnail((width, height))
+    # # normalize color values
+    # np_image = np.array(pil_image)
+    # np_image = np_image.astype('float32')
+    # np_image /= 255.0
+    # print(np_image.size)
+    #
+    # # PyTorch expects the color channel to be the first dimension.
+    # # It's the third dimension in the PIL image and Numpy array.
+    # # Reorder dimensions using ndarray.transpose. The color channel needs
+    # # to be first; retain the order of the other two dimensions.
+    # image_a = image_a.transpose(2,0,1)
+
+    # Transform into image tensor
     transformed_image = transforms.Compose([
+        transforms.Resize(255),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize(
             [0.485, 0.456, 0.406],
             [0.229, 0.224, 0.225]
         )
-    ])(np_image)
-
-    # TODO: PyTorch expects the color channel to be the first dimension.
-    # It's the third dimension in the PIL image and Numpy array.
-    # Reorder dimensions using ndarray.transpose. The color channel needs
-    # to be first; retain the order of the other two dimensions.
-    #
-    # NOTE: check out torch.unsqueeze instead?
-    transformed_image.transpose()
+    ])(pil_image) #(np_image)
 
     return transformed_image
 
@@ -248,7 +286,7 @@ def imshow(image, ax=None, title=None):
         fig, ax = plt.subplots()
     
     # PyTorch tensors assume the color channel is the first dimension
-    # but matplotlib assumes is the third dimension
+    # but matplotlib assumes it is the third dimension
     image = image.numpy().transpose((1, 2, 0))
     
     # Undo preprocessing
@@ -265,13 +303,14 @@ def imshow(image, ax=None, title=None):
 
 
 ## Predict with the model
+## This is where you pass in an image and make predictions!
 
-# TODO: predict the top 5 or so (top-𝐾) most probable classes
+# Predict the top 5 or so (top-𝐾) most probable classes
 # in the tensor (x.topk(k))
-def predict_top_k(image_path, model, k=5):
-    """Calculate the class probabilities then find the 𝐾 largest values.
-    This method returns both the highest k probabilities and the indices
-    of those probabilities corresponding to the classes.
+def predict(image_tensor, model, k=5):
+    """Returns the top 𝐾 most likely classes for an image along with the
+    probabilities. This method returns both the highest probabilities and
+    the indices of those probabilities corresponding to the classes.
     Args:
         image_path: path to an image file
         model:      saved model checkpoint
@@ -279,50 +318,74 @@ def predict_top_k(image_path, model, k=5):
     Returns:
         k highest probabilities and their class labels
     """
-    # NOTE:
-    # Convert indices to class labels using model.class_to_idx (added earlier)
-    # Invert the dict to get a mapping from index to class.
+    # Calculate the class probabilities then find the 𝐾 largest values.
     
-    # images, labels = next(iter(train_loader))
-    # image = images[0].view(1, 784)
-    # # Turn off gradients to speed up this part
-    # with torch.no_grad():
-    #     logps = model.forward(img)
-
-    # TODO: get an image tensor and calculate top k predictions
-    #img_a = "" 
-    top_k = img_a.topk(k)
+    # Turn off gradients to speed up this part
+    with torch.no_grad():
+        log_ps = model.forward(image_tensor)
+        ps = torch.exp(log_ps)
+        top_ks = ps.topk(k, dim = 1)
+    top_ps = top_ks[0][0]
+    top_classes = top_ks[1][0]
+    
+    # Build a list of labels and probabilities
     predictions = []
-    idx_to_label = [v:k for k, v in model.class_to_idx().items()]
-    for img in top_k:
-        # TODO: get index and convert index to class label
-        label = idx_to_label[idx]
-        # TODO: get the probability
-        probability = 0.0
-        predictions.append((label, probability))
-    return predictions
+    # Convert indices to class labels using model.class_to_idx (added earlier);
+    # Invert the dict to get a mapping from index to class.
+    idx_to_label = {
+        v: k for k, v in model.class_to_idx.items()
+    }
+    for i in range(len(top_ps)):
+        # Get index and convert index to class label
+        top_idx = int(top_classes[i])
+        label = idx_to_label[top_idx]
+        # Get probability and store it alongside class
+        probability = float(top_ps[i])
+        predictions.append((label, probability)) 
+
+    # Return chartable class labels and predictions
+    return np.array(predictions).transpose()
 
 
 ## Display results and check visually
 
-# TODO:
 # Check to make sure the trained model's predictions
 # make sense. Even if the testing accuracy is high,
 # check that there aren't obvious bugs. Use `matplotlib`
 # to plot probabilities for the top-k classes in a
 # bar graph. Show the input image alongside the graph.
 #
-# Recall that `cat_to_name.json` maps indexes to labels.
+# The `cat_to_name.json` maps indexes to labels.
 
-# TODO:
-# Use previously defined `imshow` to display a tensor
-# as an image.
-
-image_path = ""     # TODO: image from tensor
-image_label = ""    # TODO: convert integer to flower name with cat_to_name.json
+# Manually choose one image to load
+image_path = "flowers/test/10/image_07090.jpg"
+# convert integer to flower name with cat_to_name.json
+image_label = "(Unidentified image)"
+for label in model.class_to_idx:
+    if model.class_to_idx[label] == '07090':
+        image_label = label
+        break
+# Load an image tensor and calculate top-k predictions
 image = process_image(image_path)
-imshow(image)
-probabilities, classes = predict_top_k(image_path, model)
+unsqueezed_image = image.unsqueeze(0)
+#unsqueezed_image.requires_grad = False
+#unsqueezed_image.to(get_device())
+model.to('cpu')
+model.eval()
+# Get the class labels and prediction probabilities
+k = 5
+predictions = predict(unsqueezed_image, model, k=k)
+
+# Display the image and graph top-k labels, probabilities
+# Use previously defined `imshow` to display tensor as image
+imshow(image, title="image_label")
+plt.show()
+# Set up top-k bar chart
+labels = predictions[0]
+probabilities = predictions[1]
+plt.barh(labels, probabilities, align = "center")
+plt.title(f"Top {k} Predictions")
+plt.show()
 
 
 # TODO: afterwards use argparse to create CLI 
